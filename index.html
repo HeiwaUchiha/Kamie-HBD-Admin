@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Kamie HBD Admin</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🎃%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><symbol id="pumpkin" viewBox="0 0 40 36"><ellipse cx="13" cy="21" rx="9" ry="12" fill="#e8892b" stroke="#1f4328" stroke-width="2"/><ellipse cx="27" cy="21" rx="9" ry="12" fill="#e8892b" stroke="#1f4328" stroke-width="2"/><ellipse cx="20" cy="21" rx="8" ry="13" fill="#f09a3c" stroke="#1f4328" stroke-width="2"/><path d="M20 8c0-3 1-5 3-6" fill="none" stroke="#1f4328" stroke-width="3" stroke-linecap="round"/></symbol></svg>
+
+<main id="loading" class="center"><svg class="logo spin"><use href="#pumpkin"/></svg><p>Checking access…</p></main>
+
+<main id="login" class="center" hidden>
+  <section class="card login">
+    <svg class="logo"><use href="#pumpkin"/></svg>
+    <h1>Kamie HBD Admin</h1>
+    <p>This is a private page. Access is restricted to one authorized account.</p>
+    <button id="loginBtn" class="btn">Sign in with Google</button>
+    <p id="loginErr" class="err" role="alert"></p>
+  </section>
+</main>
+
+<main id="denied" class="center" hidden>
+  <section class="card login">
+    <h1>Access denied</h1>
+    <p>The account <strong id="deniedWho"></strong> isn’t authorized to view this dashboard. Sign out and try the correct Google account.</p>
+    <button class="btn signout">Sign out</button>
+  </section>
+</main>
+
+<div id="app" hidden>
+  <header class="top">
+    <div class="brand"><svg class="logo sm"><use href="#pumpkin"/></svg><h1>Kamie HBD Admin</h1></div>
+    <span id="conn" class="conn" data-s="connecting" role="status"><i></i><span>Connecting…</span></span>
+    <nav id="nav" aria-label="Dashboard sections">
+      <button data-view="overview" aria-current="page">Overview</button>
+      <button data-view="feed">Live feed</button>
+      <button data-view="sections">Sections</button>
+      <button data-view="history">Sessions</button>
+      <button data-view="settings">Settings</button>
+    </nav>
+  </header>
+
+  <main class="wrap">
+    <p id="banner" class="err" role="alert" hidden></p>
+
+    <section id="v-overview" data-v>
+      <h2>Overview</h2>
+      <div id="cards" class="grid"></div>
+      <div class="card"><h3>Events per day (last 14 days)</h3><div id="trend" class="bars"></div></div>
+      <div class="card note"><h3>How to read these numbers</h3>
+        <p><b>Page loads</b> = the gift site was opened. <b>Interactions</b> = clicks on buttons and cards. <b>Visits</b> = distinct anonymous browser-tab sessions. A visit is not a person: a new tab or cleared storage starts a new one. A click shows something was opened, not that it was read, watched, or listened to.</p>
+        <p id="capNote"></p></div>
+    </section>
+
+    <section id="v-feed" data-v hidden>
+      <h2>Live activity</h2>
+      <ol id="feedList" class="feed"></ol>
+    </section>
+
+    <section id="v-sections" data-v hidden>
+      <h2>Gift sections</h2>
+      <div class="grid2">
+        <div class="card"><h3>Sections opened</h3><div id="secBars" class="bars"></div></div>
+        <div class="card"><h3>Photo albums opened</h3><div id="albumBars" class="bars"></div></div>
+        <div class="card"><h3>Person pages</h3><div id="personBars" class="bars"></div></div>
+        <div class="card"><h3>Most-opened photos &amp; videos</h3><div id="mediaBars" class="bars"></div></div>
+      </div>
+    </section>
+
+    <section id="v-history" data-v hidden>
+      <h2>Sessions &amp; history</h2>
+      <div class="filters">
+        <label>Event type <select id="fType"><option value="">All</option></select></label>
+        <label>Section <select id="fSec"><option value="">All</option></select></label>
+        <label>Date <select id="fRange"><option value="all">All time</option><option value="7">Last 7 days</option><option value="today">Today</option></select></label>
+      </div>
+      <p id="histCount" class="muted"></p>
+      <div id="sessList"></div>
+      <div class="card note"><h3>About session IDs</h3><p>When the gift site opens, the browser makes a random ID and keeps it for that tab only. Events with the same ID are grouped as one visit. It contains no name or location, so it can’t identify who was using the site.</p></div>
+    </section>
+
+    <section id="v-settings" data-v hidden>
+      <h2>Account</h2>
+      <div class="card"><dl>
+        <dt>Name</dt><dd id="setName"></dd><dt>Email</dt><dd id="setEmail"></dd><dt>Account ID</dt><dd id="setUid"></dd></dl>
+        <button class="btn signout">Sign out</button></div>
+      <div class="card note"><p>Access is enforced by Firestore security rules on Google’s servers, not by this page.</p></div>
+    </section>
+  </main>
+</div>
+<script type="module" src="app.js"></script>
+</body>
+</html>
