@@ -15,7 +15,6 @@ const auth = getAuth(app), db = getFirestore(app);
 const $ = (s) => document.querySelector(s);
 const LIMIT = 1000;
 let unsub = null, events = [];
-
 const SEC = { welcome: "Welcome", declined: "No screen", hub: "Menu", wish: "Wish", pictures: "Pictures", song: "Song", person: "Person", letter: "Letter", rating: "Rating" };
 const OPENABLE = ["wish", "pictures", "song", "person", "letter"];
 const TYPES = { site_opened: "Site opened", gift_accepted: "Said YES", gift_declined: "Said NO", declined_return: "Back from NO", hub_returned: "Back to menu", section_opened: "Section opened", album_opened: "Album opened", photo_opened: "Photo opened", video_played: "Video opened", person_view_opened: "Person page opened", letter_downloaded: "Letter download", wish_send_clicked: "Wish send clicked", rating_opened: "Rating opened" };
