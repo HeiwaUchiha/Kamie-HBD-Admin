@@ -1,6 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js";
 import { getAuth, onAuthStateChanged, signInWithPopup, GoogleAuthProvider, signOut } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js";
-import { getFirestore, collection, query, orderBy, limit, onSnapshot } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js";
+import { getFirestore, collection, query, orderBy, limit, onSnapshot, getDocs, writeBatch } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js";
 
 // Public client config (not a secret). Security comes from the Firestore rules.
 const app = initializeApp({
@@ -49,7 +49,7 @@ function describe(e) {
 // ----- screens -----
 function show(name) { for (const id of ["loading", "login", "denied", "app"]) $("#" + id).hidden = id !== name; }
 function setConn(s) { const c = $("#conn"); c.dataset.s = s; c.lastChild.textContent = { live: "Live", connecting: "Connecting…", offline: "Offline", error: "Connection problem" }[s]; }
-function stop() { if (unsub) unsub(); unsub = null; events = []; for (const id of ["cards", "trend", "feedList", "secBars", "albumBars", "personBars", "mediaBars", "sessList"]) $("#" + id).replaceChildren(); }
+function stop() { if (unsub) unsub(); unsub = null; events = []; resetClear(); $("#clearMsg").textContent = ""; for (const id of ["cards", "trend", "feedList", "secBars", "albumBars", "personBars", "mediaBars", "sessList"]) $("#" + id).replaceChildren(); }
 
 // ----- auth -----
 onAuthStateChanged(auth, (user) => {
@@ -82,6 +82,28 @@ $("#loginBtn").addEventListener("click", async () => {
 });
 document.querySelectorAll(".signout").forEach((b) => b.addEventListener("click", () => signOut(auth)));
 addEventListener("online", () => setConn("live")); addEventListener("offline", () => setConn("offline"));
+
+// ----- clear all events (admin only; the rules enforce this too) -----
+function resetClear() { $("#clearConfirm").hidden = true; $("#clearBtn").hidden = false; $("#clearInput").value = ""; $("#clearGo").disabled = true; }
+$("#clearBtn").addEventListener("click", () => { $("#clearBtn").hidden = true; $("#clearConfirm").hidden = false; $("#clearInput").focus(); });
+$("#clearCancel").addEventListener("click", resetClear);
+$("#clearInput").addEventListener("input", (e) => { $("#clearGo").disabled = e.target.value !== "CLEAR"; });
+$("#clearGo").addEventListener("click", async () => {
+  const msg = $("#clearMsg"); let n = 0;
+  $("#clearGo").disabled = true; msg.textContent = "Deleting…";
+  try {
+    for (;;) { // delete in batches of 400 (Firestore allows at most 500 per batch)
+      const snap = await getDocs(query(collection(db, "events"), limit(400)));
+      if (snap.empty) break;
+      const batch = writeBatch(db); snap.docs.forEach((d) => batch.delete(d.ref)); await batch.commit();
+      n += snap.size; msg.textContent = `Deleted ${n}…`;
+    }
+    msg.textContent = `Done. ${n} events deleted.`;
+  } catch (e) {
+    msg.textContent = e.code === "permission-denied" ? "Delete refused. Publish the updated rules in Firebase first." : "Delete failed (" + e.code + ").";
+  }
+  resetClear();
+});
 
 // ----- navigation -----
 $("#nav").addEventListener("click", (e) => {

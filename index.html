@@ -90,6 +90,15 @@
       <div class="card"><dl>
         <dt>Name</dt><dd id="setName"></dd><dt>Email</dt><dd id="setEmail"></dd><dt>Account ID</dt><dd id="setUid"></dd></dl>
         <button class="btn signout">Sign out</button></div>
+      <div class="card danger"><h3>Danger zone</h3>
+        <p>Permanently delete every recorded event. This can’t be undone. The gift site will keep recording new events afterwards.</p>
+        <button id="clearBtn" class="btn danger-btn">Clear all events…</button>
+        <div id="clearConfirm" hidden>
+          <p><label>Type <b>CLEAR</b> to confirm: <input id="clearInput" autocomplete="off"></label></p>
+          <button id="clearGo" class="btn danger-btn" disabled>Delete everything</button>
+          <button id="clearCancel" class="btn secondary">Cancel</button>
+        </div>
+        <p id="clearMsg" role="status"></p></div>
       <div class="card note"><p>Access is enforced by Firestore security rules on Google’s servers, not by this page.</p></div>
     </section>
   </main>
