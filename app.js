@@ -1,6 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js";
 import { getAuth, onAuthStateChanged, signInWithPopup, GoogleAuthProvider, signOut } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js";
-import { getFirestore, collection, query, orderBy, limit, onSnapshot, getDocs, writeBatch } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js";
+import { getFirestore, collection, query, orderBy, limit, onSnapshot, getDocs, writeBatch, where } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js";
 
 // Public client config (not a secret). Security comes from the Firestore rules.
 const app = initializeApp({
@@ -15,6 +15,7 @@ const auth = getAuth(app), db = getFirestore(app);
 const $ = (s) => document.querySelector(s);
 const LIMIT = 1000;
 let unsub = null, events = [];
+
 const SEC = { welcome: "Welcome", declined: "No screen", hub: "Menu", wish: "Wish", pictures: "Pictures", song: "Song", person: "Person", letter: "Letter", rating: "Rating" };
 const OPENABLE = ["wish", "pictures", "song", "person", "letter"];
 const TYPES = { site_opened: "Site opened", gift_accepted: "Said YES", gift_declined: "Said NO", declined_return: "Back from NO", hub_returned: "Back to menu", section_opened: "Section opened", album_opened: "Album opened", photo_opened: "Photo opened", video_played: "Video opened", person_view_opened: "Person page opened", letter_downloaded: "Letter download", wish_send_clicked: "Wish send clicked", rating_opened: "Rating opened" };
@@ -104,6 +105,23 @@ $("#clearGo").addEventListener("click", async () => {
   resetClear();
 });
 
+// ----- delete one visit (every event with this session ID) -----
+async function deleteSession(id, btn) {
+  if (btn.dataset.armed !== "1") { // first click only arms the button
+    btn.dataset.armed = "1"; btn.textContent = "Click again to permanently delete this visit";
+    setTimeout(() => { btn.dataset.armed = ""; btn.textContent = "Delete this visit…"; }, 5000);
+    return;
+  }
+  btn.disabled = true; btn.textContent = "Deleting…";
+  try {
+    for (;;) {
+      const snap = await getDocs(query(collection(db, "events"), where("sessionId", "==", id), limit(400)));
+      if (snap.empty) break;
+      const batch = writeBatch(db); snap.docs.forEach((d) => batch.delete(d.ref)); await batch.commit();
+    }
+  } catch (e) { btn.disabled = false; btn.textContent = "Delete failed (" + e.code + ")"; }
+}
+
 // ----- navigation -----
 $("#nav").addEventListener("click", (e) => {
   const b = e.target.closest("button[data-view]"); if (!b) return;
@@ -167,7 +185,9 @@ function renderHistory() {
     const mins = Math.max(0, Math.round((when(evs[0]) - when(evs[evs.length - 1])) / 60000));
     sm.textContent = `Visit ${id.slice(0, 8)} · ${fmt(evs[evs.length - 1])} · ${evs.length} events · ${mins} min`;
     const ul = h("ul"); evs.forEach((e) => ul.append(h("li", "", `${when(e).toLocaleTimeString()} — ${describe(e)}`)));
-    d.append(sm, ul); return d;
+    const del = h("button", "btn danger-btn", "Delete this visit…"); del.type = "button";
+    del.addEventListener("click", () => deleteSession(id, del));
+    d.append(sm, ul, del); return d;
   }) : [h("p", "empty", "No matching activity.")]));
 }
 for (const [k, v] of Object.entries(TYPES)) $("#fType").append(new Option(v, k));
